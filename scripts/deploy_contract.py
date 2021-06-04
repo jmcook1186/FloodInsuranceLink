@@ -7,8 +7,9 @@ def main():
 
     nLINK = 10 # how many LINk to send to contract
     account1 = load_account('main') # load account
+    account2 = load_account('account2') # load account2
 
-    deploy_contract(account1)
+    deploy_contract(account1, account2, 3)
     fund_contract(nLINK, account1)
 
     return
@@ -21,7 +22,7 @@ def load_account(accountName):
     return account
 
 
-def deploy_contract(account1):
+def deploy_contract(account1, account2, warningLevel):
 
     print("Deploying contract to {} network".format(network.show_active()))
     
@@ -36,6 +37,8 @@ def deploy_contract(account1):
     config["networks"][network.show_active()]["jobId"],
     config["networks"][network.show_active()]["fee"],
     config["networks"][network.show_active()]["link_token"],
+    account2,
+    warningLevel,
     {'from':account1}
     )
     

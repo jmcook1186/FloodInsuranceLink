@@ -75,7 +75,7 @@ contract floodInsurance is ChainlinkClient {
     function escapeHatch() public onlyOwner{
         
         // in case of problem with GET request, call this function to return LINK to sender
-        // this is just a development tool to conserve test LINK if depoyed contract has
+        // this is just a development tool to conserve test LINK if deployed contract has
         // bugs lockign funds. Delete if this project ever goes anywhere near mainnet!
 
         LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
