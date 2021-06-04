@@ -1,0 +1,52 @@
+# exclude SafeMath when calculating test coverage
+# https://eth-brownie.readthedocs.io/en/v1.10.3/config.html#exclude_paths
+
+# first set environment variables including private key 
+# (from metamask test account) and Infura Project ID
+
+reports:
+  exclude_contracts:
+    - SafeMath
+
+# external contracts required for code to function    
+dependencies:
+  - smartcontractkit/chainlink-brownie-contracts@1.0.2
+  - OpenZeppelin/openzeppelin-contracts@3.4.0
+
+# define compiler (remapping ensures prefix @openzeppelin links to
+# the version downloaded in dependencies statement above 
+# (same for @chainlinK)
+
+compiler:
+  solc:
+    remappings:
+      - '@chainlink=smartcontractkit/chainlink-brownie-contracts@1.0.2'
+      - '@openzeppelin=OpenZeppelin/openzeppelin-contracts@3.4.0'
+
+
+# automatically fetch contract sources from Etherscan
+autofetch_sources: True
+
+# enable python .env for setting environment variables
+dotenv: .env
+
+# Change to true to verify smart contracts (for etherscan)
+verify: False
+
+# define networks
+networks:
+
+  default: development # default to local Ganache blockchain
+
+  kovan: # contracts already exsting on Kovan network - find using link marketplace
+    link_token: '0xa36085F69e2889c224210F603D836748e7dC0088'
+    keyhash: '0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4'
+    fee: 100000000000000000
+    oracle: '0x2f90A6D021db21e1B2A077c5a37B3C7E75D15b7e'
+    jobId: '29fa9aa13bf1468788b7cc4a500a45b8'
+    eth_usd_price_feed: '0x9326BFA02ADD2366b30bacB125260Af641031331'
+
+# only enable private key wallet access
+wallets:
+  from_key: ${PRIVATE_KEY}
+
