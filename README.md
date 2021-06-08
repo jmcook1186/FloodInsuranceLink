@@ -1,8 +1,8 @@
 # FloodInsuranceChainlink
 
-This is a repository for a super-simplified flood insurance protocol using smart contracts. A solidity contract is deployed to Ethereum and a Chainlink oracle delivers flood warning data for a UK town. If the flood warning is above a user-defined threshold, LINK tokens held int he contract are paid out to the customer/insuree. If the flood warning level is below the threshold, the funds are returned to the insurer/contract owner. Oracle gas is paid in LINK, transaction gas is paid in ETH, and the insurance payout is settled in a new ERC20 token ("FLOOD") defined for this project.
+This is a repository for a super-simplified flood insurance protocol using smart contracts. A solidity contract is deployed to Ethereum and a Chainlink oracle delivers flood warning data for a UK town. If the flood warning is above a user-defined threshold, tokens held in ecrow in the contract are paid out to the customer/insuree. If the flood warning level is below the threshold, the funds are returned to the insurer/contract owner. Oracle gas is paid in LINK, transaction gas is paid in ETH, and the insurance payout is settled in a new ERC20 token ("FLOOD") defined for this project.
 
-This project is described in detail at https://tothepoles.co.uk/category/eolink/ although this repo is usually a commit or two ahead of the explanatory posts.
+This project is described in detailed walkthroughs at https://tothepoles.co.uk/category/eolink/ although this repo might sometimes be a commit or two ahead of the explanatory posts.
 
 This project started with the [brownie chainlink-mix](https://github.com/smartcontractkit/chainlink-mix).
 
@@ -52,7 +52,7 @@ export PRIVATE_KEY=<PRIVATE_KEY>
 
 ## Testing
 
-Coming soon...
+Formal testing coming soon...
 
 
 ## Resources
