@@ -1,10 +1,12 @@
 # FloodInsuranceChainlink
 
-This is a repository for a super-simplified flood insurance protocol using smart contracts. A solidity contract is deployed to Ethereum and a Chainlink oracle delivers flood warning data for a UK town. If the flood warning is above a user-defined threshold, LINK tokens held int he contract are paid out to the customer/insuree. If the flood warning level is below the threshold, the funds are returned to the insurer/contract owner. All transactions are paid in LINK, apart from the transaction as which is paid in ETH.
+This is a repository for a super-simplified flood insurance protocol using smart contracts. A solidity contract is deployed to Ethereum and a Chainlink oracle delivers flood warning data for a UK town. If the flood warning is above a user-defined threshold, LINK tokens held int he contract are paid out to the customer/insuree. If the flood warning level is below the threshold, the funds are returned to the insurer/contract owner. Oracle gas is paid in LINK, transaction gas is paid in ETH, and the insurance payout is settled in a new ERC20 token ("FLOOD") defined for this project.
+
+This project is described in detail at https://tothepoles.co.uk/category/eolink/ although this repo is usually a commit or two ahead of the explanatory posts.
 
 This project started with the [brownie chainlink-mix](https://github.com/smartcontractkit/chainlink-mix).
 
-This repo is quite basic and I have documented the development process at my [website](https://www.tothepoles.co.uk). I strongly recommend starting with the beginner walkthroughs using Remix to [learn the basics.](https://docs.chain.link/docs/beginners-tutorial)and other materials at the same site. None of this is intended for deployment anywhere other than a local blockchain or on Kovan - it is a learning tool only and is still under development!
+None of this is intended for deployment anywhere other than a local blockchain or on Kovan - it is a learning tool only and is still under development!
 
 
 ## Prerequisites
@@ -42,6 +44,7 @@ export PRIVATE_KEY=<PRIVATE_KEY>
 ```
 
 4. Your wallet requires Kovan test ETH and test-LINK.
+   
    DO NOT USE REAL ASSETS. DO NOT SEND ASSETS FROM A MAINNET WALLET TO A KOVAN ADDRESS. DO NOT USE YOUR MAINNET ACCOUNT IN A DEVELOPMENT ENVIRONMENT.
    
    See instructions [here](https://faucet.kovan.network/) and [here](https://docs.chain.link/docs/acquire-link/)

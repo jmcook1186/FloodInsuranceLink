@@ -2,9 +2,12 @@
 pragma solidity ^0.6.6;
 
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 
 contract floodInsurance is ChainlinkClient {
-  
+    
+    IERC20 public floodToken;
     uint256 public warningThreshold; //user-defined threshold for paying out funds
     uint256 public warningLevel; // will be the value returned by oracle
     address private oracle; // oracle address
@@ -12,9 +15,11 @@ contract floodInsurance is ChainlinkClient {
     bytes32 private jobId; // oracle jobID
     uint256 private fee; // oracle fee
     address private owner; // stores contract owner address
+    uint256 private payout_amount;
+    bool public Funded;
     
 
-    constructor(address _oracle, string memory _jobId, uint256 _fee, address _link, address _customer, uint256 _warningThreshold) public {
+    constructor(address _oracle, string memory _jobId, uint256 _fee, address _link, address _customer, uint256 _warningThreshold, address _tokenAddress, uint256 _payout_amount) public {
         
         // set link token address depending on network
         if (_link == address(0)) {
@@ -23,17 +28,33 @@ contract floodInsurance is ChainlinkClient {
             setChainlinkToken(_link);
         }
         
+        // set FLOOD token
+        floodToken = IERC20(_tokenAddress);
+
         // instantiate variables with values provided at contract deployment
         oracle = _oracle;
         jobId = stringToBytes32(_jobId);
         fee = _fee;
         customer = _customer;
         warningThreshold = _warningThreshold;
+        payout_amount = _payout_amount;
         owner = msg.sender;
-        
+
     }
     
 
+    function checkFund() public view returns (bool Funded) {
+        
+        if (floodToken.balanceOf(address(this)) >= payout_amount){
+            return true;
+        }
+
+        else {return false;}
+        
+    }
+
+
+     
     function requestWarningLevel() public returns (bytes32 requestId) 
     {
         Chainlink.Request memory request = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
@@ -64,11 +85,14 @@ contract floodInsurance is ChainlinkClient {
         // if so, set payment address to customer, else payment address is contract owner
         if (warningLevel>warningThreshold){outAddress = customer;}
         else{outAddress = msg.sender;}
+
+        require(floodToken.transfer(outAddress, payout_amount), "Transfer failed");
         
         // instantiate LINK token
         LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
-        // transfer contract LINK balance to payment address
-        require(link.transfer(outAddress, link.balanceOf(address(this))), "Unable to transfer");
+
+        // transfer remaining contract LINK balance to sender
+        require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
         
     }
 
