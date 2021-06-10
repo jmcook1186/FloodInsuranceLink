@@ -14,6 +14,7 @@ def load_account1():
 
     return account1
 
+
 @pytest.fixture(scope='session')
 def load_account2():
 
@@ -27,3 +28,9 @@ def oracleGas():
 
     return 10e16 # 0.1 LINK
 
+
+
+
+@pytest.fixture(scope='session')
+def set_payout_amount():
+    return 500000e18
