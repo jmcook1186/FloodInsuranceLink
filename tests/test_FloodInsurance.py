@@ -2,26 +2,18 @@ import pytest
 import time
 from brownie import floodInsurance, config, network ,interface, FloodToken
 
+"""
+unit tests for crucial functions:
+    1) test token deploy: check token contract exists
+    2) test token transfer: check token successfully moves between loaded wallets
+    3) test sendLINK: check contract can receive LINK, fund contract for oracle gas
+    4) test_warningLevel: check that contract successfully make GET request via oracle
+    5) test_checkFunds: check the function that determines whether contract is sufficiently funded with FLOOD
+    6) test_sendTokenToContract: check contract can receive FLOOD tokens in correct amounts
+    7) test_settleClaim: check that the contract can transact based on oracle data, sending FLOOD to correct account
 
-@pytest.fixture(scope='module')
-def get_token():
+"""
 
-    if network.show_active() == 'kovan':
-
-        floodToken = FloodToken.at('0x63585C9f4968658cB36C48fa33e34BE513c5e4D9')
-    
-    else:
-        pytest.fail('Please test on kovan network')
-
-    return floodToken
-
-
-@pytest.fixture(scope='module')
-def get_contract():
-    
-    contract = floodInsurance.at('0xE094A61c7e10b5ECbEE6006a1207239d515d1548') 
-
-    return contract
 
 
 def test_token_deploy(get_token):
@@ -47,12 +39,6 @@ def test_token_transfer(get_token,load_account1, load_account2):
     assert floodToken.balanceOf(load_account2) == initialBalance
 
     return
-
-
-# def test_contract_deployed(get_contract):
-#     contract = get_contract
-#     contract.address != None
-#     return
 
 
 def test_sendLINK(get_contract,oracleGas,load_account1):
