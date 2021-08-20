@@ -7,7 +7,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract floodInsurance is ChainlinkClient {
     
-    IERC20 public floodToken;
+    IERC20 public dai;
+    address public daiAddress;
     uint256 public warningThreshold; //user-defined threshold for paying out funds
     uint256 public warningLevel; // will be the value returned by oracle
     address private oracle; // oracle address
@@ -16,10 +17,20 @@ contract floodInsurance is ChainlinkClient {
     uint256 private fee; // oracle fee
     address private owner; // stores contract owner address
     uint256 private payout_amount;
-    bool public Funded;
-    
+    mapping(address=>uint) approvalStatus;
+    mapping(address=>uint256) premium;
+    mapping(address=>string) lat;
+    mapping(address=>string) lon;
+    mapping(address=>uint16) elevation;
+    mapping (address=>uint256) tides;
+    uint16 elev;
+    uint256 tide;
+     
 
-    constructor(address _oracle, string memory _jobId, uint256 _fee, address _link, address _customer, uint256 _warningThreshold, address _tokenAddress, uint256 _payout_amount) public {
+
+    constructor(address _dai_address, address _oracle, 
+    string memory _jobId, uint256 _fee, address _link, 
+    uint256 _warningThreshold, uint256 _payout_amount) public {
         
         // set link token address depending on network
         if (_link == address(0)) {
@@ -27,74 +38,142 @@ contract floodInsurance is ChainlinkClient {
         } else {
             setChainlinkToken(_link);
         }
-        
-        // set FLOOD token
-        floodToken = IERC20(_tokenAddress);
+              
+        daiAddress = _dai_address;
+        dai = IERC20(daiAddress);
 
         // instantiate variables with values provided at contract deployment
         oracle = _oracle;
         jobId = stringToBytes32(_jobId);
         fee = _fee;
-        customer = _customer;
         warningThreshold = _warningThreshold;
         payout_amount = _payout_amount;
         owner = msg.sender;
 
     }
     
+    /**
+    @dev
+    requires 300 dai to be transferred from customer to contract, otherwise adding customer fails.
+    This requires customer to approve the transfer by calling the dai.approve func, e.g.
 
-    function checkFund() public view returns (bool Funded) {
-        
-        if (floodToken.balanceOf(address(this)) >= payout_amount){
-            return true;
-        }
+    dai.approve(contract address, amount, {from: customer address})
 
-        else {return false;}
-        
+     */
+    function add_customer(address _customer, string memory _lat, string memory _lon, uint16 _elev) payable public onlyOwner{
+
+        premium[_customer]=300e18; //hard code dummy premium for now - update later
+        require(dai.transferFrom(_customer, address(this), premium[_customer]));
+        approvalStatus[_customer]=1;
+        lat[_customer] = _lat;
+        lon[_customer] = _lon;
+        elevation[_customer] = _elev;
     }
 
 
-     
-    function requestWarningLevel() public returns (bytes32 requestId) 
-    {
+
+    /**
+    @dev this public function wraps the two internal chainlink request funcs
+    This is so that the result can be returned and appended to the tides 
+    mapping to customer address
+     */
+
+    function requestTideExtreme(address _customer) public {
+
+        makeTideRequest(_customer);
+        updateTides(_customer, tide);
+
+    }
+
+
+    /**
+    @dev
+    this function uses a chainlink oracle to request the latest tide data for a point
+    currently, this calls dummy data at the developer's github.io page, but will
+    eventually point to stormglass.io and return data from the buoy nearest to the user
+     */
+
+    function makeTideRequest(address _customer) internal returns (bytes32 requestId){
+        
+        string memory URL = "https://raw.githubusercontent.com/jmcook1186/jmcook1186.github.io/main/Data/FloodInsuranceData/TideExtremes.json";
         Chainlink.Request memory request = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
-        
-        // Set the URL to perform the GET request on
-        request.add("get", "https://environment.data.gov.uk/flood-monitoring/id/floods");
-        request.add("path", "items.0.severityLevel");
-        
-        // Sends the request
+        request.add("get", URL);
+        request.add("path", "data.0.Tide_Extreme");
+       
         return sendChainlinkRequestTo(oracle, request, fee);
     }
 
-    function fulfill(bytes32 _requestId, uint256 _warningLevel) public recordChainlinkFulfillment(_requestId)
-    
-    {
+
+    function fulfill(bytes32 _requestId, uint256 _value) public recordChainlinkFulfillment(_requestId){
         // fulfill request and instantiate warningLevel var with retrieved value
-        warningLevel = _warningLevel;
+        tide = _value;
+    }
+
+    /**
+    @dev
+    update the tide value for each customer
+     */
+    function updateTides(address _customer, uint256 tide) internal {
+        
+        tides[_customer] = tide;
     }
 
 
-    function settleClaim() public onlyOwner{
-        // settleClaim() can only be called by contract owner
 
-        // address to make payment to: function level scope
-        address outAddress;
+    ////////////////////////////////////////////////////////////////////
+    // VIEW FUNCS
+    ////////////////////////////////////////////////////////////////////
+
+    function viewApproval(address _customer) public view returns (uint){
+
+        return(approvalStatus[_customer]);
+
+    }
+
+    function viewlocation(address _customer) public view returns (string memory, string memory){
         
-        // condition: is warning level above threshold for payment
-        // if so, set payment address to customer, else payment address is contract owner
-        if (warningLevel>warningThreshold){outAddress = customer;}
-        else{outAddress = msg.sender;}
+        return(lat[_customer], lon[_customer]);
 
-        require(floodToken.transfer(outAddress, payout_amount), "Transfer failed");
+    }
+
+
+    function viewTide(address _customer) public view returns (uint256){
+
+        return tides[_customer];
+
+    }
+
+
+
+    function checkFund() public view returns (uint256) {
         
-        // instantiate LINK token
-        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
-
-        // transfer remaining contract LINK balance to sender
-        require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
+        return dai.balanceOf(address(this));
         
     }
+
+
+    // function settleClaim() public onlyOwner{
+    //     // settleClaim() can only be called by contract owner
+
+    //     // address to make payment to: function level scope
+    //     address outAddress;
+        
+    //     // condition: is warning level above threshold for payment
+    //     // if so, set payment address to customer, else payment address is contract owner
+    //     if (warningLevel>warningThreshold){outAddress = customer;}
+
+    //     else{outAddress = msg.sender;}
+
+    //     require(floodToken.transfer(outAddress, payout_amount), "Transfer failed");
+        
+    //     // instantiate LINK token
+    //     LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+
+    //     // transfer remaining contract LINK balance to sender
+    //     require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
+        
+    // }
+
 
     function escapeHatch() public onlyOwner{
         
@@ -104,6 +183,8 @@ contract floodInsurance is ChainlinkClient {
 
         LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
         require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
+
+        require(dai.transfer(msg.sender, dai.balanceOf(address(this))));
         
     }
 
