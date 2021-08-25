@@ -52,7 +52,12 @@ export PRIVATE_KEY=<PRIVATE_KEY>
 
 ## Testing
 
-Formal testing coming soon...
+Testing is achieved using pytest in brownie. I have not yet written any mocks, so all tests use the contracts deployed on the Kovan testnet. Fixtures (configuration common to all tests) are defined in conftest.py and unit tests are defined in test_flood_insurance.py. To run the tests from the terminal, navigate to the project folder, then:
+
+```
+>>> brownie test --network kovan
+
+```
 
 
 ## Resources

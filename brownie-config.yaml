@@ -45,6 +45,7 @@ networks:
     oracle: '0x2f90A6D021db21e1B2A077c5a37B3C7E75D15b7e'
     jobId: '29fa9aa13bf1468788b7cc4a500a45b8'
     eth_usd_price_feed: '0x9326BFA02ADD2366b30bacB125260Af641031331'
+    dai_address: '0xff795577d9ac8bd7d90ee22b6c1703490b6512fd'
 
 # only enable private key wallet access
 wallets:

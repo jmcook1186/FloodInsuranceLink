@@ -1,10 +1,8 @@
 import pytest
 
 from brownie import (
-    LinkToken,
     accounts,
-    network,
-    config
+    network
 )
 
 
@@ -29,7 +27,12 @@ def get_contract():
     """
     load deployed insurance contract
     """
-    contract = floodInsurance.at('0xE094A61c7e10b5ECbEE6006a1207239d515d1548') 
+    
+    if network.show_active() == 'kovan':
+        contract = floodInsurance.at('0xE094A61c7e10b5ECbEE6006a1207239d515d1548') 
+
+    else:
+        pytest.fail('Please test on kovan network')
 
     return contract
 

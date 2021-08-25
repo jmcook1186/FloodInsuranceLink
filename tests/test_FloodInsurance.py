@@ -1,6 +1,6 @@
 import pytest
 import time
-from brownie import floodInsurance, config, network ,interface, FloodToken
+from brownie import config, network, interface
 
 """
 unit tests for crucial functions:
