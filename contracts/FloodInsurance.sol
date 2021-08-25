@@ -28,6 +28,7 @@ contract floodInsurance is ChainlinkClient {
     mapping(address=>uint16) elevation;
     mapping (address=>uint256) tides;
     mapping (address => uint256) payoutAmount;
+    mapping(address => uint256) paymentTimes;
     uint16 elev;
     uint256 tide;
 
@@ -71,6 +72,7 @@ contract floodInsurance is ChainlinkClient {
         payoutAmount[_customer] = premium[_customer] * 10;
         require(dai.transferFrom(_customer, address(this), premium[_customer]));
         require(dai.transferFrom(owner, address(this), payoutAmount[_customer]));
+        paymentTimes[_customer] = now;
         approvalStatus[_customer]=1;
         lat[_customer] = _lat;
         lon[_customer] = _lon;
@@ -78,6 +80,18 @@ contract floodInsurance is ChainlinkClient {
     }
 
 
+    function payPremium(address _customer) public {
+        // if customer is late, add 10% to premium
+       if (paymentTimes[_customer] < now - 1 minutes){
+            premium[_customer] += 30;
+        }
+
+        require(dai.transferFrom(_customer, address(this), premium[_customer]));
+
+        approvalStatus[_customer] = 1;
+        premium[_customer] -= 30; // remove additional late payment
+
+    }
 
     /**
     @dev this public function wraps the two internal chainlink request funcs
@@ -131,10 +145,12 @@ contract floodInsurance is ChainlinkClient {
     // VIEW FUNCS
     ////////////////////////////////////////////////////////////////////
 
-    function viewApproval(address _customer) public view returns (uint){
-
+    function viewApproval(address _customer) public returns (uint){
+        
+        if(paymentTimes[_customer]< now - 1 minutes){
+            approvalStatus[_customer] = 0;
+        }
         return(approvalStatus[_customer]);
-
     }
 
     function viewlocation(address _customer) public view returns (string memory, string memory){
@@ -151,7 +167,6 @@ contract floodInsurance is ChainlinkClient {
     }
 
 
-
     function checkFund() public view returns (uint256) {
         
         return dai.balanceOf(address(this));
@@ -164,14 +179,15 @@ contract floodInsurance is ChainlinkClient {
 
         // address to make payment to: function level scope
         address outAddress;
-        uint256 tide = tides[_customer];
+        uint256 tideVal = tides[_customer];
         uint256 elev = elevation[_customer];
         uint256 payAmount = payoutAmount[_customer];
 
+        require (approvalStatus[_customer] >0, "Customer not approved, pleae pay monthly premium");
         
         // condition: is warning level above threshold for payment
         // if so, set payment address to customer, else payment address is contract owner
-        if (tide>elev){outAddress = customer;}
+        if (tideVal>elev){outAddress = customer;}
 
         else{outAddress = msg.sender;}
 
