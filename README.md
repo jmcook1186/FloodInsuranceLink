@@ -1,10 +1,14 @@
 # FloodInsuranceChainlink
 
-This is a repository for a super-simplified flood insurance protocol using smart contracts. A solidity contract is deployed to Ethereum and a Chainlink oracle delivers flood warning data for a UK town. If the flood warning is above a user-defined threshold, tokens held in ecrow in the contract are paid out to the customer/insuree. If the flood warning level is below the threshold, the funds are returned to the insurer/contract owner. Oracle gas is paid in LINK, transaction gas is paid in ETH, and the insurance payout is settled in a new ERC20 token ("FLOOD") defined for this project.
+This is a repository for a flood insurance protocol using smart contracts. The contract establishes the logic of an agreement between multiple customers and a single insurer (assumed to be the contract owner). Customers are added to the contract by providing their latitude and longitude and elevation above sea level. They then pay a premum of 300 DAI. They can then trigger the contract to make a request to a tide extreme API via a Chainlink oracle. This checks whether the tide extreme has exceeded ther elevation above sea level, represeting  flood. If so, a settlement can be triggered, where a payout of 3000 DAI is made to their account. Otherwise, the payout amount is sent back to the insurer.
+
+Oracle gas is paid in LINK, transaction gas is paid in ETH, and the insurance payout is settled in DAI.
 
 This project is described in detailed walkthroughs at https://tothepoles.co.uk/category/eolink/ although this repo might sometimes be a commit or two ahead of the explanatory posts.
 
 This project started with the [brownie chainlink-mix](https://github.com/smartcontractkit/chainlink-mix).
+
+NB: The chainlink oracle currently directs to dummy json data hosted on my github pages, in lieu of writing a Chainlink external adaptor for stormglass.io.
 
 None of this is intended for deployment anywhere other than a local blockchain or on Kovan - it is a learning tool only and is still under development!
 

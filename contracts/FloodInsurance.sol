@@ -54,21 +54,21 @@ contract floodInsurance is ChainlinkClient {
     
     /**
     @dev
-    dummy premium/payout calculations for now. fixed 300dai payment from customer and 1000x premium payout amount.
+    dummy premium/payout calculations for now. fixed 300dai payment from customer and 10x premium payout amount.
 
     requires 300 dai to be transferred from customer to contract, otherwise adding customer fails.
     This requires customer to approve the transfer by calling the dai.approve func, e.g.
 
     dai.approve(contract address, amount, {from: customer address})
 
-    owner must also approve tranfer of 300,000 dai to contract
+    owner must also approve tranfer of 3000 dai to contract
 
 
      */
     function add_customer(address _customer, string memory _lat, string memory _lon, uint16 _elev) payable public onlyOwner{
 
         premium[_customer]=300e18; //hard code dummy premium for now - update later
-        payoutAmount[_customer] = premium[_customer] * 1000;
+        payoutAmount[_customer] = premium[_customer] * 10;
         require(dai.transferFrom(_customer, address(this), premium[_customer]));
         require(dai.transferFrom(owner, address(this), payoutAmount[_customer]));
         approvalStatus[_customer]=1;
